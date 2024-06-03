@@ -46,6 +46,9 @@ fn prepare_statement(input_buffer:&str) -> PrepareResult {
             let statement = StatementType::STATEMENT_SELECT;
             PREPARE_SUCCESS
         },
+        "" => {
+            PREPARE_SUCCESS
+        },
         _ => {
             PREPARE_UNRECOGNIZED_STATEMENT
         }
