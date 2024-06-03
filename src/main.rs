@@ -2,7 +2,10 @@ use std::fmt::{Display, Formatter};
 use std::io;
 use std::process::exit;
 use crate::MetaCommandResult::{META_COMMAND_SUCCESS, META_COMMAND_UNRECOGNIZED_COMMAND};
+use crate::PrepareResult::{PREPARE_SUCCESS, PREPARE_UNRECOGNIZED_STATEMENT};
+use crate::StatementType::{STATEMENT_INSERT, STATEMENT_SELECT};
 
+static PROMPT: &str = "tinyDB:_>";
 enum MetaCommandResult {
     META_COMMAND_SUCCESS,
     META_COMMAND_UNRECOGNIZED_COMMAND
@@ -10,7 +13,10 @@ enum MetaCommandResult {
 
 impl Display for MetaCommandResult {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", "Unrecognized command")
+        match self {
+            META_COMMAND_SUCCESS => write!(f, "{} {}", PROMPT, "OK"),
+            META_COMMAND_UNRECOGNIZED_COMMAND => write!(f, "{} {}", PROMPT, "Unrecognized Command")
+        }
     }
 }
 
@@ -19,36 +25,55 @@ enum PrepareResult {
     PREPARE_UNRECOGNIZED_STATEMENT
 }
 
-fn do_meta_command(input_buffer:&str, prompt:&str) -> MetaCommandResult {
+impl Display for PrepareResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PREPARE_SUCCESS => write!(f, "{} {}", PROMPT, "OK"),
+            PREPARE_UNRECOGNIZED_STATEMENT => write!(f, "{} {}", PROMPT, "Unrecognized Command")
+        }
+    }
+}
+
+enum  StatementType { STATEMENT_INSERT, STATEMENT_SELECT }
+
+fn prepare_statement(input_buffer:&str) -> PrepareResult {
+    return match input_buffer {
+        "insert" => {
+            let statement = StatementType::STATEMENT_INSERT;
+            PREPARE_SUCCESS
+        },
+        "select" => {
+            let statement = StatementType::STATEMENT_SELECT;
+            PREPARE_SUCCESS
+        },
+        _ => {
+            PREPARE_UNRECOGNIZED_STATEMENT
+        }
+    }
+}
+
+fn do_meta_command(input_buffer:&str) -> MetaCommandResult {
     if input_buffer == ".exit" {
-        print!("{} Bye", prompt);
+        print!("{} Bye", PROMPT);
         exit(0);
     } else if input_buffer == "." {
-        print!("{} Please give command..", prompt);
         return META_COMMAND_SUCCESS;
     }
-    else
-    {
-    return META_COMMAND_UNRECOGNIZED_COMMAND;
+    else {
+        return META_COMMAND_UNRECOGNIZED_COMMAND;
     }
 }
 
 
 fn main() {
-    let _CREATE_TABLE: &str = "create table";
-    let _DROP_TABLE: &str = "drop table";
-    let _ALTER_TABLE: &str = "alter table";
-    let prompt: &str = "tinyDB:_>";
-
-
     print!("Welcome to tinyDB:\nThis is development version May 2024. Server Started:...\n");
     loop {
         let mut input_cmd: String = "".to_string();
         let n: io::Result<usize> = io::stdin().read_line(&mut input_cmd);
         if input_cmd.starts_with(".") {
-            println!("{}", do_meta_command(input_cmd.trim(), prompt));
+            println!("{}", do_meta_command(input_cmd.trim()));
         } else {
-            print!("{} {} DONE", prompt, input_cmd);
+            println!("{}", prepare_statement(input_cmd.trim()));
         }
 
     }
