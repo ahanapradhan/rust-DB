@@ -38,6 +38,12 @@ impl Display for PrepareResult {
 
 enum  StatementType { STATEMENT_INSERT, STATEMENT_SELECT }
 
+struct Row {
+    id: u32,
+    username: String,
+    email: String
+}
+
 fn prepare_statement(input_buffer:&str) -> PrepareResult {
     let cmd = input_buffer.split(' ').next().unwrap().trim();
     dbg!(cmd);
