@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 use std::io;
 use std::process::exit;
 use crate::MetaCommandResult::{META_COMMAND_SUCCESS, META_COMMAND_UNRECOGNIZED_COMMAND};
-use crate::PrepareResult::{PREPARE_SUCCESS, PREPARE_UNRECOGNIZED_STATEMENT};
+use crate::PrepareResult::{PREPARE_FAIL, PREPARE_SUCCESS, PREPARE_UNRECOGNIZED_STATEMENT};
 use crate::StatementType::{STATEMENT_INSERT, STATEMENT_SELECT};
 
 static PROMPT: &str = "tinyDB:_>";
@@ -22,14 +22,16 @@ impl Display for MetaCommandResult {
 
 enum PrepareResult {
     PREPARE_SUCCESS,
-    PREPARE_UNRECOGNIZED_STATEMENT
+    PREPARE_UNRECOGNIZED_STATEMENT,
+    PREPARE_FAIL
 }
 
 impl Display for PrepareResult {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             PREPARE_SUCCESS => write!(f, "{} {}", PROMPT, "OK"),
-            PREPARE_UNRECOGNIZED_STATEMENT => write!(f, "{} {}", PROMPT, "Unrecognized Command")
+            PREPARE_UNRECOGNIZED_STATEMENT => write!(f, "{} {}", PROMPT, "Unrecognized Command"),
+            PREPARE_FAIL=> write!(f, "{} {}", PROMPT, "Syntax error")
         }
     }
 }
@@ -39,8 +41,18 @@ enum  StatementType { STATEMENT_INSERT, STATEMENT_SELECT }
 fn prepare_statement(input_buffer:&str) -> PrepareResult {
     let cmd = input_buffer.split(' ').next().unwrap().trim();
     dbg!(cmd);
+
     return match cmd {
         "insert" => {
+            let mut args = input_buffer.split(' ');
+            let arg_count = input_buffer.split_whitespace().count();
+            dbg!(arg_count);
+            if arg_count != 4 {
+                return PREPARE_FAIL
+            }
+            let id = args.nth(1);
+            let username = args.nth(0);
+            let email = args.nth(0);
             let statement = StatementType::STATEMENT_INSERT;
             PREPARE_SUCCESS
         },
