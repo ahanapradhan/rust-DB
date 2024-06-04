@@ -37,7 +37,9 @@ impl Display for PrepareResult {
 enum  StatementType { STATEMENT_INSERT, STATEMENT_SELECT }
 
 fn prepare_statement(input_buffer:&str) -> PrepareResult {
-    return match input_buffer {
+    let cmd = input_buffer.split(' ').next().unwrap().trim();
+    dbg!(cmd);
+    return match cmd {
         "insert" => {
             let statement = StatementType::STATEMENT_INSERT;
             PREPARE_SUCCESS
