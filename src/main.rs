@@ -1,11 +1,13 @@
 use std::fmt::{Display, Formatter};
 use std::io;
 use std::process::exit;
+
 use crate::MetaCommandResult::{META_COMMAND_SUCCESS, META_COMMAND_UNRECOGNIZED_COMMAND};
 use crate::PrepareResult::{PREPARE_FAIL, PREPARE_SUCCESS, PREPARE_UNRECOGNIZED_STATEMENT};
-use crate::StatementType::{STATEMENT_INSERT, STATEMENT_SELECT};
+use crate::StatementType::STATEMENT_INSERT;
 
 static PROMPT: &str = "tinyDB:_>";
+static OK: &str = "OK";
 enum MetaCommandResult {
     META_COMMAND_SUCCESS,
     META_COMMAND_UNRECOGNIZED_COMMAND
@@ -14,7 +16,7 @@ enum MetaCommandResult {
 impl Display for MetaCommandResult {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            META_COMMAND_SUCCESS => write!(f, "{} {}", PROMPT, "OK"),
+            META_COMMAND_SUCCESS => write!(f, "{} {}", PROMPT, OK),
             META_COMMAND_UNRECOGNIZED_COMMAND => write!(f, "{} {}", PROMPT, "Unrecognized Command")
         }
     }
@@ -29,7 +31,7 @@ enum PrepareResult {
 impl Display for PrepareResult {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            PREPARE_SUCCESS => write!(f, "{} {}", PROMPT, "OK"),
+            PREPARE_SUCCESS => write!(f, "{} {}", PROMPT, OK),
             PREPARE_UNRECOGNIZED_STATEMENT => write!(f, "{} {}", PROMPT, "Unrecognized Command"),
             PREPARE_FAIL=> write!(f, "{} {}", PROMPT, "Syntax error")
         }
@@ -37,11 +39,15 @@ impl Display for PrepareResult {
 }
 
 enum  StatementType { STATEMENT_INSERT, STATEMENT_SELECT }
-
 struct Row {
     id: u32,
     username: String,
     email: String
+}
+
+struct Statement {
+    statement_type: StatementType,
+    insert_row: Row
 }
 
 fn prepare_statement(input_buffer:&str) -> PrepareResult {
@@ -50,16 +56,25 @@ fn prepare_statement(input_buffer:&str) -> PrepareResult {
 
     return match cmd {
         "insert" => {
-            let mut args = input_buffer.split(' ');
             let arg_count = input_buffer.split_whitespace().count();
             dbg!(arg_count);
             if arg_count != 4 {
                 return PREPARE_FAIL
             }
-            let id = args.nth(1);
-            let username = args.nth(0);
-            let email = args.nth(0);
-            let statement = StatementType::STATEMENT_INSERT;
+
+            let statement = STATEMENT_INSERT;
+            let mut args = input_buffer.split(' ');
+            let row_to_insert = Row {
+                id: args.nth(1).expect(OK).parse().unwrap(),
+                username: args.nth(0).expect(OK).parse().unwrap(),
+                email: args.nth(0).expect(OK).parse().unwrap()
+            };
+            dbg!(&row_to_insert.email);
+            let insert_statement = Statement {
+                statement_type: statement,
+                insert_row: row_to_insert
+            };
+
             PREPARE_SUCCESS
         },
         "select" => {
